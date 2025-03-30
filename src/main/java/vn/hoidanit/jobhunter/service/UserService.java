@@ -1,7 +1,6 @@
 package vn.hoidanit.jobhunter.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -46,5 +45,9 @@ public class UserService {
             currentUser = this.userRepository.save(currentUser);
         }
         return currentUser;
+    }
+
+    public User handleFindUserByUsername(String username) {
+        return this.userRepository.findByEmail(username);
     }
 }
