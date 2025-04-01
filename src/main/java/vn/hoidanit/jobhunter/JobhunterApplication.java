@@ -3,8 +3,6 @@ package vn.hoidanit.jobhunter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import vn.hoidanit.jobhunter.utils.error.GlobalException;
-
 //disable security
 // @SpringBootApplication(exclude = {
 // 		org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,

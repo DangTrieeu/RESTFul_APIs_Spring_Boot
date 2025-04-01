@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,17 +17,21 @@ import vn.hoidanit.jobhunter.domain.RestResponse;
 
 @RestControllerAdvice
 public class GlobalException {
-    @ExceptionHandler(value = IdInvalidException.class)
-    public ResponseEntity<RestResponse<Object>> handleBlogAlreadyExistsException(
-            IdInvalidException idInvalidException) {
+    // exception login
+    @ExceptionHandler(value = {
+            UsernameNotFoundException.class,
+            BadCredentialsException.class
+    })
 
+    public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        res.setError(idInvalidException.getMessage());
-        res.setMessage("IdInvalidException");
+        res.setMessage(ex.getMessage());
+        res.setError("Exception occurs...");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
+    // exception jwt
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestResponse<Object>> validationError(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
