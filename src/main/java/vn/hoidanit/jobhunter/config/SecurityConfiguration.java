@@ -82,6 +82,7 @@ public class SecurityConfiguration {
 
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/", "/login").permitAll()
                         .anyRequest().authenticated())
