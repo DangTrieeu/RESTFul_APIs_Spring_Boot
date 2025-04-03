@@ -25,19 +25,30 @@ import org.springframework.security.web.SecurityFilterChain;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
 
-import vn.hoidanit.jobhunter.utils.SecurityUtil;
+import vn.hoidanit.jobhunter.util.SecurityUtil;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
 
-    @Value("${hoidanit.jwt.base64-secret}")
-    private String jwtKey;
-
     // hash user password
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Value("${hoidanit.jwt.base64-secret}")
+    private String jwtKey;
+
+    // encode jwt key
+    @Bean
+    public JwtEncoder jwtEncoder() {
+        return new NimbusJwtEncoder(new ImmutableSecret<>(getSecretKey()));
+    }
+
+    private SecretKey getSecretKey() {
+        byte[] keyBytes = Base64.from(jwtKey).decode();
+        return new SecretKeySpec(keyBytes, 0, keyBytes.length, SecurityUtil.JWT_ALGORITHM.getName());
     }
 
     @Bean
@@ -54,17 +65,7 @@ public class SecurityConfiguration {
         };
     }
 
-    // encode jwt key
-    @Bean
-    public JwtEncoder jwtEncoder() {
-        return new NimbusJwtEncoder(new ImmutableSecret<>(getSecretKey()));
-    }
-
-    private SecretKey getSecretKey() {
-        byte[] keyBytes = Base64.from(jwtKey).decode();
-        return new SecretKeySpec(keyBytes, 0, keyBytes.length, SecurityUtil.JWT_ALGORITHM.getName());
-    }
-
+    // convert data from object
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -78,17 +79,19 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
             CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/", "/login").permitAll()
                         .anyRequest().authenticated())
+
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))
-                .exceptionHandling(
-                        exceptions -> exceptions
-                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
-                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
+                // .exceptionHandling(
+                // exceptions -> exceptions
+                // .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
+                // .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
                 .formLogin(form -> form.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

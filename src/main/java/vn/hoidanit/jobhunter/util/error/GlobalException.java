@@ -1,12 +1,13 @@
-package vn.hoidanit.jobhunter.utils.error;
+package vn.hoidanit.jobhunter.util.error;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.naming.Binding;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,33 +18,24 @@ import vn.hoidanit.jobhunter.domain.RestResponse;
 
 @RestControllerAdvice
 public class GlobalException {
-    // exception login
-    @ExceptionHandler(value = {
-            UsernameNotFoundException.class,
-            BadCredentialsException.class
-    })
-
-    public ResponseEntity<RestResponse<Object>> handleIdException(Exception ex) {
+    @ExceptionHandler(value = IdInvalidException.class)
+    public ResponseEntity<RestResponse<Object>> handleIdException(IdInvalidException idException) {
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        res.setMessage(ex.getMessage());
-        res.setError("Exception occurs...");
+        res.setError(idException.getMessage());
+        res.setMessage("Call API error!");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
-    // exception jwt
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestResponse<Object>> validationError(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
         final List<FieldError> fieldErrors = result.getFieldErrors();
-
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         res.setError(ex.getBody().getDetail());
-
         List<String> errors = fieldErrors.stream().map(f -> f.getDefaultMessage()).collect(Collectors.toList());
-        res.setMessage(errors.size() > 1 ? errors : errors.get(0));
-
+        res.setMessage(errors.size() >1 ? errors : errors.get(0));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 }

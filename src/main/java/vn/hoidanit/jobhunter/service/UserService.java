@@ -9,45 +9,48 @@ import vn.hoidanit.jobhunter.repository.UserRepository;
 
 @Service
 public class UserService {
-    final private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public User handleSaveUser(User user) {
-        return this.userRepository.save(user);
+     // 🟢 Tạo User mới
+     public User handleCreateUser(User user) {
+        return userRepository.save(user);
     }
 
-    public void handleDeleteUserById(long id) {
-        this.userRepository.deleteById(id);
-    }
-
-    public User handleFindUserById(long id) {
-        User user = this.userRepository.findById(id);
-        if (user != null) {
-            return user;
-        } else {
-            return null;
+    // 🔴 Xóa User theo ID
+    public void handleDeleteUser(long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found with id: " + id);
         }
+        userRepository.deleteById(id);
     }
 
-    public List<User> handleGetAllUsers() {
-        return this.userRepository.findAll();
+    // 🔵 Lấy User theo ID
+    public User handleGetUser(long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    public User handleUpdateUser(User reqUser) {
-        User currentUser = this.handleFindUserById(reqUser.getId());
-        if (currentUser != null) {
-            currentUser.setName(reqUser.getName());
-            currentUser.setEmail(reqUser.getEmail());
-            currentUser.setPassword(reqUser.getPassword());
-            currentUser = this.userRepository.save(currentUser);
-        }
-        return currentUser;
+    // 🟡 Lấy danh sách tất cả Users
+    public List<User> handleGetAllUser() {
+        return userRepository.findAll();
     }
 
-    public User handleFindUserByUsername(String username) {
+    // 🟠 Cập nhật User
+    public User handleUpdateUser(User user) {
+        return userRepository.findById(user.getId())
+                .map(existingUser -> {
+                    existingUser.setName(user.getName());
+                    existingUser.setEmail(user.getEmail());
+                    existingUser.setPassword(user.getPassword()); 
+                    return userRepository.save(existingUser);
+                })
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
+    }
+    public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
     }
 }

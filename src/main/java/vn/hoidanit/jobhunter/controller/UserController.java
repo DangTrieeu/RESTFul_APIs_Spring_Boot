@@ -1,11 +1,5 @@
 package vn.hoidanit.jobhunter.controller;
 
-import org.springframework.web.bind.annotation.RestController;
-
-import vn.hoidanit.jobhunter.domain.User;
-import vn.hoidanit.jobhunter.service.UserService;
-import vn.hoidanit.jobhunter.utils.error.IdInvalidException;
-
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -17,55 +11,50 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.service.UserService;
 
 @RestController
 public class UserController {
 
-    final private UserService userService;
-    final private PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     public UserController(UserService userService, PasswordEncoder passwordEncoder) {
-        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 
-    // fetch user
+    // @GetMapping("/users/create")
+    @PostMapping("/users")
+    public ResponseEntity<User> CreateNewUser(@RequestBody User PostmanUser) {
+        String hashPassword = passwordEncoder.encode(PostmanUser.getPassword());
+        PostmanUser.setPassword(hashPassword);
+        User toanUser = userService.handleCreateUser(PostmanUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toanUser);
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<String> DeleteUser(@PathVariable("id") long id) {
+        this.userService.handleDeleteUser(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete user with id: " + id + " success!");
+    }
+
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable long id) {
-        User fetchUser = this.userService.handleFindUserById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(fetchUser);
+    public ResponseEntity<User> GetUser(@PathVariable("id") long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.handleGetUser(id));
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUser() {
-        List<User> users = this.userService.handleGetAllUsers();
-        return ResponseEntity.status(HttpStatus.OK).body(users);
+    public ResponseEntity<List<User>> GetAllUser() {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.handleGetAllUser());
     }
 
-    // create user
-    @PostMapping("/users")
-    public ResponseEntity<User> createNewUser(@RequestBody User postManUser) {
-        String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
-        postManUser.setPassword(hashPassword);
-        User userCreated = this.userService.handleSaveUser(postManUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userCreated);
-    }
-
-    // update user
     @PutMapping("/users")
-    public ResponseEntity<User> updateUser(@RequestBody User reqUser) {
-        User user = this.userService.handleUpdateUser(reqUser);
-        return ResponseEntity.status(HttpStatus.OK).body(user);
-    }
-
-    // delete user
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable("id") long id)
-            throws IdInvalidException {
-        if (id > 1500) {
-            throw new IdInvalidException("invalid user id");
-        }
-        this.userService.handleDeleteUserById(id);
-        return ResponseEntity.status(HttpStatus.OK).body("delete user");
+    public ResponseEntity<User> UpdateUser(@RequestBody User PostmanUser) {
+        User userUpdated = userService.handleUpdateUser(PostmanUser);
+        return ResponseEntity.status(HttpStatus.OK).body(userUpdated);
     }
 }
