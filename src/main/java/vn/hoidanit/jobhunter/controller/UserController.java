@@ -32,8 +32,8 @@ public class UserController {
     public ResponseEntity<User> CreateNewUser(@RequestBody User PostmanUser) {
         String hashPassword = passwordEncoder.encode(PostmanUser.getPassword());
         PostmanUser.setPassword(hashPassword);
-        User toanUser = userService.handleCreateUser(PostmanUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toanUser);
+        User userCreated = userService.handleCreateUser(PostmanUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userCreated);
     }
 
     @DeleteMapping("/users/{id}")
