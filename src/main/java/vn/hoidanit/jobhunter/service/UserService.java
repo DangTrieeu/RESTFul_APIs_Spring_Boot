@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.User;
@@ -39,8 +40,8 @@ public class UserService {
     }
 
     // 🟡 Lấy danh sách tất cả Users
-    public ResultPaginationDTO handleGetAllUser(Pageable pageable) {
-        Page<User> pageUser = this.userRepository.findAll(pageable);
+    public ResultPaginationDTO handleGetAllUser(Specification<User> spec, Pageable pageable) {
+        Page<User> pageUser = this.userRepository.findAll(spec, pageable);
 
         ResultPaginationDTO resultDTO = new ResultPaginationDTO();
         Meta meta = new Meta();
