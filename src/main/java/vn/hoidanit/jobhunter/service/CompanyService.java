@@ -31,8 +31,8 @@ public class CompanyService {
         ResultPaginationDTO resultDTO = new ResultPaginationDTO();
         Meta meta = new Meta();
 
-        meta.setPage(pageCompany.getNumber() + 1);
-        meta.setPageSize(pageCompany.getSize());
+        meta.setPage(pageable.getPageNumber() + 1);
+        meta.setPageSize(pageable.getPageSize());
         meta.setTotalPages(pageCompany.getTotalPages());
         meta.setTotalElements(pageCompany.getTotalElements());
 

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,8 +24,10 @@ import com.turkraft.springfilter.boot.Filter;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.service.UserService;
+import vn.hoidanit.jobhunter.util.annotation.APIMessage;
 
 @RestController
+@RequestMapping("/api/v1")
 public class UserController {
 
     private final UserService userService;
@@ -56,6 +59,7 @@ public class UserController {
     }
 
     @GetMapping("/users")
+    @APIMessage("fetch all users")
     public ResponseEntity<ResultPaginationDTO> GetAllUser(
             @Filter Specification<User> spec,
             Pageable pageable) {
