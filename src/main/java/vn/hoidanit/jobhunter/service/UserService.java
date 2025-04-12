@@ -2,9 +2,13 @@ package vn.hoidanit.jobhunter.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import vn.hoidanit.jobhunter.domain.User;
+import vn.hoidanit.jobhunter.domain.dto.Meta;
+import vn.hoidanit.jobhunter.domain.dto.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.repository.UserRepository;
 
 @Service
@@ -15,8 +19,8 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-     // 🟢 Tạo User mới
-     public User handleCreateUser(User user) {
+    // 🟢 Tạo User mới
+    public User handleCreateUser(User user) {
         return userRepository.save(user);
     }
 
@@ -35,8 +39,20 @@ public class UserService {
     }
 
     // 🟡 Lấy danh sách tất cả Users
-    public List<User> handleGetAllUser() {
-        return userRepository.findAll();
+    public ResultPaginationDTO handleGetAllUser(Pageable pageable) {
+        Page<User> pageUser = this.userRepository.findAll(pageable);
+
+        ResultPaginationDTO resultDTO = new ResultPaginationDTO();
+        Meta meta = new Meta();
+
+        meta.setPage(pageUser.getNumber() + 1);
+        meta.setPageSize(pageUser.getSize());
+        meta.setTotalPages(pageUser.getTotalPages());
+        meta.setTotalElements(pageUser.getTotalElements());
+
+        resultDTO.setMeta(meta);
+        resultDTO.setResult(pageUser.getContent());
+        return resultDTO;
     }
 
     // 🟠 Cập nhật User
@@ -45,11 +61,12 @@ public class UserService {
                 .map(existingUser -> {
                     existingUser.setName(user.getName());
                     existingUser.setEmail(user.getEmail());
-                    existingUser.setPassword(user.getPassword()); 
+                    existingUser.setPassword(user.getPassword());
                     return userRepository.save(existingUser);
                 })
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
     }
+
     public User handleGetUserByUsername(String username) {
         return this.userRepository.findByEmail(username);
     }
