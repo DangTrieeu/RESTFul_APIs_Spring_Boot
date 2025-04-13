@@ -117,4 +117,11 @@ public class UserService {
         return this.userRepository.existsByEmail(email);
     }
 
+    public void handleSetRefreshToken(String refreshToken, String email) {
+        User currentUser = this.handleGetUserByUsername(email);
+        if (currentUser != null) {
+            currentUser.setRefreshToken(refreshToken);
+            this.userRepository.save(currentUser);
+        }
+    }
 }
