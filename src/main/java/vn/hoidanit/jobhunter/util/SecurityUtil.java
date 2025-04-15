@@ -21,8 +21,15 @@ import vn.hoidanit.jobhunter.domain.dto.RestLoginDTO;
 
 @Service
 public class SecurityUtil {
+
     private final JwtEncoder jwtEncoder;
+
+    public SecurityUtil(JwtEncoder jwtEncoder) {
+        this.jwtEncoder = jwtEncoder;
+    }
+
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS512;
+
     @Value("${hoidanit.jwt.base64-secret}")
     private String jwtKey;
 
@@ -32,41 +39,42 @@ public class SecurityUtil {
     @Value("${hoidanit.jwt.refresh-token-validity-in-seconds}")
     private long refreshTokenExpiration;
 
-    public SecurityUtil(JwtEncoder jwtEncoder) {
-        this.jwtEncoder = jwtEncoder;
-    }
-
-    public String createAccessToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication, RestLoginDTO.UserLogin dto) {
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
+
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
-        .issuedAt(now)
-        .expiresAt(validity)
-        .subject(authentication.getName())
-        .claim("AUTHORITIES_KEY", authentication)
-        .build();
+            .issuedAt(now)
+            .expiresAt(validity)
+            .subject(authentication.getName())
+            .claim("user", dto)
+            .build();
+
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+
     }
 
-    //create refresh token
-    public String createRefreshToken(String email, RestLoginDTO restLoginDTO) {
+    public String createRefreshToken(String email, RestLoginDTO dto) {
         Instant now = Instant.now();
         Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
+
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
-        .issuedAt(now)
-        .expiresAt(validity)
-        .subject(email)
-        .claim("user", restLoginDTO.getUserLogin())
-        .build();
+            .issuedAt(now)
+            .expiresAt(validity)
+            .subject(email)
+            .claim("user", dto.getUserLogin())
+            .build();
+
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+
     }
 
 
-   /**
+    /**
      * Get the login of the current user.
      *
      * @return the login of the current user.
@@ -147,4 +155,5 @@ public class SecurityUtil {
     // private static Stream<String> getAuthorities(Authentication authentication) {
     //     return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority);
     // }
+
 }
