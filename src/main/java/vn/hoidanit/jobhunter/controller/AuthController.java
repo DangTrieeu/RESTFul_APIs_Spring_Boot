@@ -162,4 +162,35 @@ public class AuthController {
                                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                                 .body(restLoginDTO);
         }
+
+        @PostMapping("/auth/logout")
+        @APIMessage("logout user")
+        public ResponseEntity<Void> logout() throws IdInvalidException {
+                String email = SecurityUtil.getCurrentUserLogin().isPresent()
+                                ? SecurityUtil.getCurrentUserLogin().get()
+                                : "";
+                User currentUser = this.userService.handleGetUserByUsername(email);
+                if (currentUser == null) {
+                        throw new IdInvalidException("User not found");
+                }
+                // set refresh token to null
+                currentUser.setRefreshToken(null);
+                this.userService.handleUpdateUser(currentUser);
+                ResponseCookie deleteSpringCookies = ResponseCookie
+                                .from("refresh_token", null)
+                                .httpOnly(true)
+                                .secure(true)
+                                .path("/")
+                                .maxAge(0) // set maxAge to 0 to delete the cookie
+                                // .domain("example.com")
+                                .build();
+
+                // clear security context
+                SecurityContextHolder.clearContext();
+
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.SET_COOKIE, deleteSpringCookies.toString())
+                                .body(null);
+
+        }
 }
