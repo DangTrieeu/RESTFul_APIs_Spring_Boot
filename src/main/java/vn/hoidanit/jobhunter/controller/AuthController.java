@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.User;
 import vn.hoidanit.jobhunter.domain.dto.LoginDTO;
-import vn.hoidanit.jobhunter.domain.dto.RestLoginDTO;
+import vn.hoidanit.jobhunter.domain.dto.ResLoginDTO;
 import vn.hoidanit.jobhunter.service.UserService;
 import vn.hoidanit.jobhunter.util.SecurityUtil;
 import vn.hoidanit.jobhunter.util.annotation.APIMessage;
@@ -45,7 +45,7 @@ public class AuthController {
         }
 
         @PostMapping("/auth/login")
-        public ResponseEntity<RestLoginDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
+        public ResponseEntity<ResLoginDTO> login(@Valid @RequestBody LoginDTO loginDTO) {
                 // nạp input bao gồm username/password vào Security
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                                 loginDTO.getUsername(), loginDTO.getPassword());
@@ -57,18 +57,18 @@ public class AuthController {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 // create a token
 
-                RestLoginDTO restLoginDTO = new RestLoginDTO();
+                ResLoginDTO restLoginDTO = new ResLoginDTO();
                 User currentUserDB = this.userService.handleGetUserByUsername(loginDTO.getUsername());
                 if (currentUserDB != null) {
-                        RestLoginDTO.UserLogin userLogin = new RestLoginDTO.UserLogin(
+                        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                                         currentUserDB.getId(),
                                         currentUserDB.getEmail(),
                                         currentUserDB.getName());
-                        restLoginDTO.setUserLogin(userLogin);
+                        restLoginDTO.setUser(userLogin);
 
                 }
                 String accessToken = this.securityUtil.createAccessToken(authentication.getName(),
-                                restLoginDTO.getUserLogin());
+                                restLoginDTO.getUser());
                 restLoginDTO.setAccessToken(accessToken);
 
                 // create refresh token
@@ -93,25 +93,28 @@ public class AuthController {
 
         @GetMapping("/auth/account")
         @APIMessage("fetch account")
-        public ResponseEntity<RestLoginDTO.UserLogin> getAccount() {
+        public ResponseEntity<ResLoginDTO.UserGetAccount> getAccount() {
                 String email = SecurityUtil.getCurrentUserLogin().isPresent()
                                 ? SecurityUtil.getCurrentUserLogin().get()
                                 : "";
 
                 User currentUserDB = this.userService.handleGetUserByUsername(email);
-                RestLoginDTO.UserLogin userLogin = new RestLoginDTO.UserLogin();
+                ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin();
+                ResLoginDTO.UserGetAccount userGetAccount = new ResLoginDTO.UserGetAccount();
+
                 if (currentUserDB != null) {
                         userLogin.setId(currentUserDB.getId());
                         userLogin.setEmail(currentUserDB.getEmail());
                         userLogin.setName(currentUserDB.getName());
+                        userGetAccount.setUser(userLogin);
                 }
 
-                return ResponseEntity.ok().body(userLogin);
+                return ResponseEntity.ok().body(userGetAccount);
         }
 
         @GetMapping("/auth/refresh")
         @APIMessage("get user by refresh token")
-        public ResponseEntity<RestLoginDTO> getRefreshToken(
+        public ResponseEntity<ResLoginDTO> getRefreshToken(
                         @CookieValue(name = "refresh_token", defaultValue = "abc") String refresh_token)
                         throws IdInvalidException {
                 // check if refresh token is empty
@@ -130,17 +133,17 @@ public class AuthController {
                 }
                 // issue new token/ set refresh token as cookie
 
-                RestLoginDTO restLoginDTO = new RestLoginDTO();
+                ResLoginDTO restLoginDTO = new ResLoginDTO();
                 User currentUserDB = this.userService.handleGetUserByUsername(email);
                 if (currentUserDB != null) {
-                        RestLoginDTO.UserLogin userLogin = new RestLoginDTO.UserLogin(
+                        ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
                                         currentUserDB.getId(),
                                         currentUserDB.getEmail(),
                                         currentUserDB.getName());
-                        restLoginDTO.setUserLogin(userLogin);
+                        restLoginDTO.setUser(userLogin);
 
                 }
-                String accessToken = this.securityUtil.createAccessToken(email, restLoginDTO.getUserLogin());
+                String accessToken = this.securityUtil.createAccessToken(email, restLoginDTO.getUser());
                 restLoginDTO.setAccessToken(accessToken);
 
                 // create refresh token
