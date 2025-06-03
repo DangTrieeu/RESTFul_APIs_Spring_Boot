@@ -50,8 +50,8 @@ public class CompanyController {
 
     @GetMapping("/companies/{id}")
     public ResponseEntity<Company> getFetchCompanyById(@PathVariable("id") long id) {
-        Company company = this.companyService.handleFetchCompanyById(id);
-        return ResponseEntity.ok().body(company);
+        Optional<Company> company = this.companyService.handleFetchCompanyById(id);
+        return ResponseEntity.ok().body(company.get());
     }
 
     @DeleteMapping("/companies/{id}")

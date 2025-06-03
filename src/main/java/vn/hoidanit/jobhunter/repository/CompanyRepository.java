@@ -10,9 +10,5 @@ import vn.hoidanit.jobhunter.domain.Company;
 
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, Long>, JpaSpecificationExecutor<Company> {
-    Company save(Company company);
 
-    Company findById(long id);
-
-    void deleteById(long id);
 }
