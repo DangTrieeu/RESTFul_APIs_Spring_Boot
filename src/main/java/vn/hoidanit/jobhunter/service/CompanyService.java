@@ -16,43 +16,51 @@ import vn.hoidanit.jobhunter.repository.UserRepository;
 
 @Service
 public class CompanyService {
+
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
 
-    public CompanyService(CompanyRepository companyRepository,
+    public CompanyService(
+            CompanyRepository companyRepository,
             UserRepository userRepository) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
     }
 
-    // creatre company
-    public Company handleSaveCompany(Company company) {
-        return this.companyRepository.save(company);
+    public Company handleCreateCompany(Company c) {
+        return this.companyRepository.save(c);
     }
 
-    // get all companies
-    public ResultPaginationDTO handleFetchAllCompanies(Specification<Company> spec, Pageable pageable) {
-        Page<Company> pageCompany = this.companyRepository.findAll(spec, pageable);
+    public ResultPaginationDTO handleGetCompany(Specification<Company> spec, Pageable pageable) {
+        Page<Company> pCompany = this.companyRepository.findAll(spec, pageable);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
 
-        ResultPaginationDTO resultDTO = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta();
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
 
-        meta.setPage(pageable.getPageNumber() + 1);
-        meta.setPageSize(pageable.getPageSize());
-        meta.setTotalPages(pageCompany.getTotalPages());
-        meta.setTotalElements(pageCompany.getTotalElements());
+        mt.setPages(pCompany.getTotalPages());
+        mt.setTotal(pCompany.getTotalElements());
 
-        resultDTO.setMeta(meta);
-        resultDTO.setResult(pageCompany.getContent());
-        return resultDTO;
+        rs.setMeta(mt);
+        rs.setResult(pCompany.getContent());
+        return rs;
     }
 
-    public Optional<Company> handleFetchCompanyById(long id) {
-        return this.companyRepository.findById(id);
+    public Company handleUpdateCompany(Company c) {
+        Optional<Company> companyOptional = this.companyRepository.findById(c.getId());
+        if (companyOptional.isPresent()) {
+            Company currentCompany = companyOptional.get();
+            currentCompany.setLogo(c.getLogo());
+            currentCompany.setName(c.getName());
+            currentCompany.setDescription(c.getDescription());
+            currentCompany.setAddress(c.getAddress());
+            return this.companyRepository.save(currentCompany);
+        }
+        return null;
     }
 
-    // delete company by id
-    public void handleDeleteCompanyById(long id) {
+    public void handleDeleteCompany(long id) {
         Optional<Company> comOptional = this.companyRepository.findById(id);
         if (comOptional.isPresent()) {
             Company com = comOptional.get();
@@ -64,22 +72,7 @@ public class CompanyService {
         this.companyRepository.deleteById(id);
     }
 
-    // update company
-    public Company handleUpdateCompany(Company company) {
-        Optional<Company> companyOptional = this.companyRepository.findById(company.getId());
-        if (companyOptional.isPresent()) {
-            Company currentCompany = companyOptional.get();
-            currentCompany.setLogo(company.getLogo());
-            currentCompany.setName(company.getName());
-            currentCompany.setDescription(company.getDescription());
-            currentCompany.setAddress(company.getAddress());
-            return this.companyRepository.save(currentCompany);
-        }
-        return null;
-    }
-
     public Optional<Company> findById(long id) {
         return this.companyRepository.findById(id);
     }
-
 }

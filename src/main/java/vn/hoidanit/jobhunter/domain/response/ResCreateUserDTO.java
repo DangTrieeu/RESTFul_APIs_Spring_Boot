@@ -24,5 +24,4 @@ public class ResCreateUserDTO {
         private long id;
         private String name;
     }
-
 }

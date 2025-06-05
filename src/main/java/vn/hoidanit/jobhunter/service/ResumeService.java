@@ -92,6 +92,10 @@ public class ResumeService {
         res.setUpdatedAt(resume.getUpdatedAt());
         res.setUpdatedBy(resume.getUpdatedBy());
 
+        if (resume.getJob() != null) {
+            res.setCompanyName(resume.getJob().getCompany().getName());
+        }
+
         res.setUser(new ResFetchResumeDTO.UserResume(resume.getUser().getId(), resume.getUser().getName()));
         res.setJob(new ResFetchResumeDTO.JobResume(resume.getJob().getId(), resume.getJob().getName()));
 
@@ -106,8 +110,8 @@ public class ResumeService {
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
 
-        mt.setTotalPages(pageUser.getTotalPages());
-        mt.setTotalElements(pageUser.getTotalElements());
+        mt.setPages(pageUser.getTotalPages());
+        mt.setTotal(pageUser.getTotalElements());
 
         rs.setMeta(mt);
 

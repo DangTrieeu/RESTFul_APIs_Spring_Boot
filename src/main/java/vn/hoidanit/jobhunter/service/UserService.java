@@ -32,7 +32,7 @@ public class UserService {
     public User handleCreateUser(User user) {
         // check company
         if (user.getCompany() != null) {
-            Optional<Company> companyOptional = this.companyService.handleFetchCompanyById(user.getCompany().getId());
+            Optional<Company> companyOptional = this.companyService.findById(user.getCompany().getId());
             user.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
         }
 
@@ -43,7 +43,7 @@ public class UserService {
         this.userRepository.deleteById(id);
     }
 
-    public User handleGetUserById(long id) {
+    public User fetchUserById(long id) {
         Optional<User> userOptional = this.userRepository.findById(id);
         if (userOptional.isPresent()) {
             return userOptional.get();
@@ -51,7 +51,7 @@ public class UserService {
         return null;
     }
 
-    public ResultPaginationDTO handleGetAllUser(Specification<User> spec, Pageable pageable) {
+    public ResultPaginationDTO fetchAllUser(Specification<User> spec, Pageable pageable) {
         Page<User> pageUser = this.userRepository.findAll(spec, pageable);
         ResultPaginationDTO rs = new ResultPaginationDTO();
         ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
@@ -59,8 +59,8 @@ public class UserService {
         mt.setPage(pageable.getPageNumber() + 1);
         mt.setPageSize(pageable.getPageSize());
 
-        mt.setPageSize(pageUser.getTotalPages());
-        mt.setTotalElements(pageUser.getTotalElements());
+        mt.setPages(pageUser.getTotalPages());
+        mt.setTotal(pageUser.getTotalElements());
 
         rs.setMeta(mt);
 
@@ -86,7 +86,7 @@ public class UserService {
     }
 
     public User handleUpdateUser(User reqUser) {
-        User currentUser = this.handleGetUserById(reqUser.getId());
+        User currentUser = this.fetchUserById(reqUser.getId());
         if (currentUser != null) {
             currentUser.setAddress(reqUser.getAddress());
             currentUser.setGender(reqUser.getGender());
@@ -95,8 +95,7 @@ public class UserService {
 
             // check company
             if (reqUser.getCompany() != null) {
-                Optional<Company> companyOptional = this.companyService
-                        .handleFetchCompanyById(reqUser.getCompany().getId());
+                Optional<Company> companyOptional = this.companyService.findById(reqUser.getCompany().getId());
                 reqUser.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
             }
 
@@ -114,7 +113,7 @@ public class UserService {
         return this.userRepository.existsByEmail(email);
     }
 
-    public ResCreateUserDTO handleConvertToCreateUserDTO(User user) {
+    public ResCreateUserDTO convertToResCreateUserDTO(User user) {
         ResCreateUserDTO res = new ResCreateUserDTO();
         ResCreateUserDTO.CompanyUser com = new ResCreateUserDTO.CompanyUser();
 
@@ -134,7 +133,7 @@ public class UserService {
         return res;
     }
 
-    public ResUpdateUserDTO handleConvertToUpdateUserDTO(User user) {
+    public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
         ResUpdateUserDTO res = new ResUpdateUserDTO();
         ResUpdateUserDTO.CompanyUser com = new ResUpdateUserDTO.CompanyUser();
         if (user.getCompany() != null) {
@@ -152,7 +151,7 @@ public class UserService {
         return res;
     }
 
-    public ResUserDTO handleConvertToResUserDTO(User user) {
+    public ResUserDTO convertToResUserDTO(User user) {
         ResUserDTO res = new ResUserDTO();
         ResUserDTO.CompanyUser com = new ResUserDTO.CompanyUser();
 
@@ -173,7 +172,7 @@ public class UserService {
         return res;
     }
 
-    public void handleSetRefreshToken(String token, String email) {
+    public void updateUserToken(String token, String email) {
         User currentUser = this.handleGetUserByUsername(email);
         if (currentUser != null) {
             currentUser.setRefreshToken(token);
@@ -181,7 +180,7 @@ public class UserService {
         }
     }
 
-    public User handleGetUserByRefreshTokenAndEmail(String token, String email) {
+    public User getUserByRefreshTokenAndEmail(String token, String email) {
         return this.userRepository.findByRefreshTokenAndEmail(token, email);
     }
 }

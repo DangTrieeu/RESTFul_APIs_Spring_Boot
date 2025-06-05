@@ -20,7 +20,7 @@ import vn.hoidanit.jobhunter.domain.response.resume.ResCreateResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResFetchResumeDTO;
 import vn.hoidanit.jobhunter.domain.response.resume.ResUpdateResumeDTO;
 import vn.hoidanit.jobhunter.service.ResumeService;
-import vn.hoidanit.jobhunter.util.annotation.APIMessage;
+import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +36,7 @@ public class ResumeController {
     }
 
     @PostMapping("/resumes")
-    @APIMessage("Create a resume")
+    @ApiMessage("Create a resume")
     public ResponseEntity<ResCreateResumeDTO> create(@Valid @RequestBody Resume resume) throws IdInvalidException {
         // check id exists
         boolean isIdExist = this.resumeService.checkResumeExistByUserAndJob(resume);
@@ -49,7 +49,7 @@ public class ResumeController {
     }
 
     @PutMapping("/resumes")
-    @APIMessage("Update a resume")
+    @ApiMessage("Update a resume")
     public ResponseEntity<ResUpdateResumeDTO> update(@RequestBody Resume resume) throws IdInvalidException {
         // check id exist
         Optional<Resume> reqResumeOptional = this.resumeService.fetchById(resume.getId());
@@ -64,7 +64,7 @@ public class ResumeController {
     }
 
     @DeleteMapping("/resumes/{id}")
-    @APIMessage("Delete a resume by id")
+    @ApiMessage("Delete a resume by id")
     public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
         Optional<Resume> reqResumeOptional = this.resumeService.fetchById(id);
         if (reqResumeOptional.isEmpty()) {
@@ -76,7 +76,7 @@ public class ResumeController {
     }
 
     @GetMapping("/resumes/{id}")
-    @APIMessage("Fetch a resume by id")
+    @ApiMessage("Fetch a resume by id")
     public ResponseEntity<ResFetchResumeDTO> fetchById(@PathVariable("id") long id) throws IdInvalidException {
         Optional<Resume> reqResumeOptional = this.resumeService.fetchById(id);
         if (reqResumeOptional.isEmpty()) {
@@ -87,7 +87,7 @@ public class ResumeController {
     }
 
     @GetMapping("/resumes")
-    @APIMessage("Fetch all resume with paginate")
+    @ApiMessage("Fetch all resume with paginate")
     public ResponseEntity<ResultPaginationDTO> fetchAll(
             @Filter Specification<Resume> spec,
             Pageable pageable) {

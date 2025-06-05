@@ -19,13 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileService {
-    // @Value("${hoidanit.upload-file.base-uri}")
-    // private String baseUri;
 
-    // create directory
+    @Value("${hoidanit.upload-file.base-uri}")
+    private String baseURI;
+
     public void createDirectory(String folder) throws URISyntaxException {
         URI uri = new URI(folder);
-        // convert URI to Path
         Path path = Paths.get(uri);
         File tmpDir = new File(path.toString());
         if (!tmpDir.isDirectory()) {
@@ -38,14 +37,14 @@ public class FileService {
         } else {
             System.out.println(">>> SKIP MAKING DIRECTORY, ALREADY EXISTS");
         }
+
     }
 
-    // store file
-    public String store(MultipartFile file, String folder, String baseUri) throws URISyntaxException,
-            IOException {
+    public String store(MultipartFile file, String folder) throws URISyntaxException, IOException {
         // create unique filename
         String finalName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-        URI uri = new URI(baseUri + folder + "/" + finalName);
+
+        URI uri = new URI(baseURI + folder + "/" + finalName);
         Path path = Paths.get(uri);
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, path,
@@ -54,8 +53,8 @@ public class FileService {
         return finalName;
     }
 
-    public long getFileLength(String fileName, String folder, String baseUri) throws URISyntaxException {
-        URI uri = new URI(baseUri + folder + "/" + fileName);
+    public long getFileLength(String fileName, String folder) throws URISyntaxException {
+        URI uri = new URI(baseURI + folder + "/" + fileName);
         Path path = Paths.get(uri);
 
         File tmpDir = new File(path.toString());
@@ -66,13 +65,12 @@ public class FileService {
         return tmpDir.length();
     }
 
-    public InputStreamResource getResource(String fileName, String folder, String baseUri)
+    public InputStreamResource getResource(String fileName, String folder)
             throws URISyntaxException, FileNotFoundException {
-        URI uri = new URI(baseUri + folder + "/" + fileName);
+        URI uri = new URI(baseURI + folder + "/" + fileName);
         Path path = Paths.get(uri);
 
         File file = new File(path.toString());
         return new InputStreamResource(new FileInputStream(file));
     }
-
 }

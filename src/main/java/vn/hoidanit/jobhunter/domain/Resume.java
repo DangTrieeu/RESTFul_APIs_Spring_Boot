@@ -27,9 +27,11 @@ public class Resume {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @NotBlank(message = "Email is required")
+
+    @NotBlank(message = "email không được để trống")
     private String email;
-    @NotBlank(message = "url is required")
+
+    @NotBlank(message = "url không được để trống (upload cv chưa thành công)")
     private String url;
 
     @Enumerated(EnumType.STRING)

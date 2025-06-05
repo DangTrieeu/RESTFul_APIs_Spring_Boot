@@ -51,8 +51,9 @@ public class SecurityUtil {
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
 
-        // hardcode list authority
+        // hardcode permission (for testing)
         List<String> listAuthority = new ArrayList<String>();
+
         listAuthority.add("ROLE_USER_CREATE");
         listAuthority.add("ROLE_USER_UPDATE");
 
@@ -87,7 +88,23 @@ public class SecurityUtil {
 
     }
 
+    private SecretKey getSecretKey() {
+        byte[] keyBytes = Base64.from(jwtKey).decode();
+        return new SecretKeySpec(keyBytes, 0, keyBytes.length,
+                JWT_ALGORITHM.getName());
+    }
 
+    public Jwt checkValidRefreshToken(String token){
+     NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
+                getSecretKey()).macAlgorithm(SecurityUtil.JWT_ALGORITHM).build();
+                try {
+                     return jwtDecoder.decode(token);
+                } catch (Exception e) {
+                    System.out.println(">>> Refresh Token error: " + e.getMessage());
+                    throw e;
+                }
+    }
+    
     /**
      * Get the login of the current user.
      *
@@ -121,23 +138,6 @@ public class SecurityUtil {
         return Optional.ofNullable(securityContext.getAuthentication())
             .filter(authentication -> authentication.getCredentials() instanceof String)
             .map(authentication -> (String) authentication.getCredentials());
-    }
-
-    private SecretKey getSecretKey() {
-        byte[] keyBytes = Base64.from(jwtKey).decode();
-        return new SecretKeySpec(keyBytes, 0, keyBytes.length, JWT_ALGORITHM.getName());
-    }
-    public Jwt checkValidRefreshToken(String refreshToken) {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
-                getSecretKey()).macAlgorithm(SecurityUtil.JWT_ALGORITHM).build();
-                try {
-                    return jwtDecoder.decode(refreshToken);
-                }
-                catch(Exception e) {
-                    System.out.println(">>> Refresh Token error: " + e.getMessage());
-                    throw e;
-
-                }
     }
 
     /**

@@ -1,9 +1,9 @@
 package vn.hoidanit.jobhunter.controller;
 
 import java.util.Optional;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,43 +12,61 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import org.springframework.web.bind.annotation.RestController;
-
 import com.turkraft.springfilter.boot.Filter;
-
+import jakarta.validation.Valid;
 import vn.hoidanit.jobhunter.domain.Job;
-
 import vn.hoidanit.jobhunter.domain.response.ResultPaginationDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResCreateJobDTO;
 import vn.hoidanit.jobhunter.domain.response.job.ResUpdateJobDTO;
 import vn.hoidanit.jobhunter.service.JobService;
-import vn.hoidanit.jobhunter.util.annotation.APIMessage;
+import vn.hoidanit.jobhunter.util.annotation.ApiMessage;
 import vn.hoidanit.jobhunter.util.error.IdInvalidException;
 
 @RestController
 @RequestMapping("/api/v1")
 public class JobController {
 
-    final JobService jobService;
+    private final JobService jobService;
 
     public JobController(JobService jobService) {
         this.jobService = jobService;
     }
 
-    // create job
     @PostMapping("/jobs")
-    @APIMessage("Create a new job")
-    public ResponseEntity<ResCreateJobDTO> postCreateJob(@RequestBody Job job) {
-        ResCreateJobDTO jobCreated = this.jobService.handleCreateJob(job);
-        return ResponseEntity.ok().body(jobCreated);
+    @ApiMessage("Create a job")
+    public ResponseEntity<ResCreateJobDTO> create(@Valid @RequestBody Job job) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(this.jobService.create(job));
     }
 
-    // fetch job by id
+    @PutMapping("/jobs")
+    @ApiMessage("Update a job")
+    public ResponseEntity<ResUpdateJobDTO> update(@Valid @RequestBody Job job) throws IdInvalidException {
+        Optional<Job> currentJob = this.jobService.fetchJobById(job.getId());
+        if (!currentJob.isPresent()) {
+            throw new IdInvalidException("Job not found");
+        }
+
+        return ResponseEntity.ok()
+                .body(this.jobService.update(job, currentJob.get()));
+    }
+
+    @DeleteMapping("/jobs/{id}")
+    @ApiMessage("Delete a job by id")
+    public ResponseEntity<Void> delete(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Job> currentJob = this.jobService.fetchJobById(id);
+        if (!currentJob.isPresent()) {
+            throw new IdInvalidException("Job not found");
+        }
+        this.jobService.delete(id);
+        return ResponseEntity.ok().body(null);
+    }
+
     @GetMapping("/jobs/{id}")
-    @APIMessage("Fetch job by ID")
-    public ResponseEntity<Job> getJobById(@PathVariable("id") Long id) throws IdInvalidException {
-        Optional<Job> currentJob = this.jobService.handleGetJobById(id);
+    @ApiMessage("Get a job by id")
+    public ResponseEntity<Job> getJob(@PathVariable("id") long id) throws IdInvalidException {
+        Optional<Job> currentJob = this.jobService.fetchJobById(id);
         if (!currentJob.isPresent()) {
             throw new IdInvalidException("Job not found");
         }
@@ -56,30 +74,12 @@ public class JobController {
         return ResponseEntity.ok().body(currentJob.get());
     }
 
-    // fetch all jobs
     @GetMapping("/jobs")
-    @APIMessage("fetch all jobs")
-    public ResponseEntity<ResultPaginationDTO> getAllJobs(@Filter Specification<Job> spec, Pageable pageable) {
-        return ResponseEntity.ok().body(this.jobService.handleGetAllJobs(spec, pageable));
-    }
+    @ApiMessage("Get job with pagination")
+    public ResponseEntity<ResultPaginationDTO> getAllJob(
+            @Filter Specification<Job> spec,
+            Pageable pageable) {
 
-    // delete job by id
-    @DeleteMapping("/jobs/{id}")
-    @APIMessage("delete job by ID")
-    public ResponseEntity<String> deleteJobById(@PathVariable("id") Long id) {
-        this.jobService.handleDeleteJobById(id);
-        return ResponseEntity.ok().body("Job with id = " + id + " has been deleted");
+        return ResponseEntity.ok().body(this.jobService.fetchAll(spec, pageable));
     }
-
-    // update job
-    @PutMapping("/jobs")
-    @APIMessage("update job")
-    public ResponseEntity<ResUpdateJobDTO> putUpdateJob(@RequestBody Job reqJob) {
-        ResUpdateJobDTO updatedJob = this.jobService.handleUpdateJob(reqJob);
-        if (updatedJob == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(updatedJob);
-    }
-
 }

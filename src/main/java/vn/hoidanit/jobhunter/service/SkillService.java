@@ -19,38 +19,26 @@ public class SkillService {
         this.skillRepository = skillRepository;
     }
 
-    // save skill
-    public void handleSaveSkill(Skill skill) {
-        this.skillRepository.save(skill);
+    public boolean isNameExist(String name) {
+        return this.skillRepository.existsByName(name);
     }
 
-    // fetch skill by id
-    public Skill handleFetchSkillById(Long id) {
+    public Skill fetchSkillById(long id) {
         Optional<Skill> skillOptional = this.skillRepository.findById(id);
         if (skillOptional.isPresent())
             return skillOptional.get();
         return null;
     }
 
-    // fetch all skills
-    public ResultPaginationDTO handleFetchAllSkills(Specification<Skill> spec, Pageable pageable) {
-        Page<Skill> pageSkill = this.skillRepository.findAll(spec, pageable);
-
-        ResultPaginationDTO resultDTO = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta meta = new ResultPaginationDTO.Meta();
-
-        meta.setPage(pageable.getPageNumber() + 1);
-        meta.setPageSize(pageable.getPageSize());
-        meta.setTotalPages(pageSkill.getTotalPages());
-        meta.setTotalElements(pageSkill.getTotalElements());
-
-        resultDTO.setMeta(meta);
-        resultDTO.setResult(pageSkill.getContent());
-        return resultDTO;
+    public Skill createSkill(Skill s) {
+        return this.skillRepository.save(s);
     }
 
-    // delete skill by id
-    public void handleDeleteSkillById(Long id) {
+    public Skill updateSkill(Skill s) {
+        return this.skillRepository.save(s);
+    }
+
+    public void deleteSkill(long id) {
         // delete job (inside job_skill table)
         Optional<Skill> skillOptional = this.skillRepository.findById(id);
         Skill currentSkill = skillOptional.get();
@@ -60,19 +48,22 @@ public class SkillService {
         this.skillRepository.delete(currentSkill);
     }
 
-    // update skill
-    public Skill handleUpdateSkill(Skill reqSkill) {
-        Optional<Skill> optionalSkill = this.skillRepository.findById(reqSkill.getId());
-        if (optionalSkill.isPresent()) {
-            Skill existingSkill = optionalSkill.get();
-            existingSkill.setName(reqSkill.getName());
-            return this.skillRepository.save(existingSkill);
-        }
-        return null;
-    }
+    public ResultPaginationDTO fetchAllSkills(Specification<Skill> spec, Pageable pageable) {
+        Page<Skill> pageUser = this.skillRepository.findAll(spec, pageable);
 
-    // check if skill exists by name
-    public boolean handleIsSkillExistByName(String name) {
-        return this.skillRepository.existsByName(name);
+        ResultPaginationDTO rs = new ResultPaginationDTO();
+        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+
+        mt.setPage(pageable.getPageNumber() + 1);
+        mt.setPageSize(pageable.getPageSize());
+
+        mt.setPages(pageUser.getTotalPages());
+        mt.setTotal(pageUser.getTotalElements());
+
+        rs.setMeta(mt);
+
+        rs.setResult(pageUser.getContent());
+
+        return rs;
     }
 }
